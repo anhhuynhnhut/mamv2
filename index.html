@@ -230,6 +230,8 @@ window.MAM_ITEMS = {
       margin: 0;
       padding: 0;
       overflow: hidden;
+      overscroll-behavior: none;
+      touch-action: manipulation;
       background: #14110e;
       user-select: none;
       letter-spacing: 0.01em;
@@ -334,24 +336,27 @@ window.MAM_ITEMS = {
   <!-- ======================================================= -->
   <!-- CANVAS GAME 2D CHÍNH                                     -->
   <!-- ======================================================= -->
-  <canvas id="game-canvas" class="absolute inset-0 w-full h-full block z-10"></canvas>
+  <canvas id="game-canvas" class="absolute inset-0 w-full h-full block z-10 touch-none select-none"></canvas>
 
   <!-- ======================================================= -->
   <!-- THANH CÔNG CỤ MỰC VẼ TRÊN ĐỈNH (HAND-DRAWN INK TOP BAR)  -->
   <!-- ======================================================= -->
   <header class="fixed top-2.5 left-3 z-30 flex items-center pointer-events-none">
-    <div class="pointer-events-auto ink-box flex items-center gap-2 px-3.5 py-1 text-[13.5px]">
-      <button onclick="openMapModal()" class="ink-btn px-2.5 py-0.5 text-[13px] flex items-center gap-1.5" title="Mở bản đồ hành trình [M]">
-        <span>📜</span> <span>Bản Đồ (M)</span>
+    <div class="pointer-events-auto ink-box flex items-center gap-2 px-3 py-1 text-[13px] flex-wrap sm:flex-nowrap">
+      <button onclick="openMapModal()" class="ink-btn px-2 py-0.5 text-[12.5px] sm:text-[13px] flex items-center gap-1" title="Mở bản đồ hành trình">
+        <span>📜</span> <span id="lbl-hud-map">Bản Đồ (M)</span>
       </button>
-      <button id="btn-hud-inventory" onclick="toggleInventoryModal()" class="ink-btn px-2.5 py-0.5 text-[13px] bg-[#2e5a36] text-[#fdf6e9] hover:bg-[#234529] font-bold flex items-center gap-1.5" title="Mở hành trang [I]">
-        <span>🎒</span> <span>Hành Trang (I)</span>
+      <button id="btn-hud-inventory" onclick="toggleInventoryModal()" class="ink-btn px-2 py-0.5 text-[12.5px] sm:text-[13px] bg-[#2e5a36] text-[#fdf6e9] hover:bg-[#234529] font-bold flex items-center gap-1" title="Mở hành trang / túi đồ">
+        <span>🎒</span> <span id="lbl-hud-inv">Hành Trang (I)</span>
       </button>
-      <button onclick="openHelpModal()" class="ink-btn px-2.5 py-0.5 text-[13px] flex items-center gap-1.5" title="Xem hướng dẫn điều khiển [H]">
-        <span>❓</span> <span>Hướng Dẫn (H)</span>
+      <button onclick="openHelpModal()" class="ink-btn px-2 py-0.5 text-[12.5px] sm:text-[13px] flex items-center gap-1" title="Xem hướng dẫn điều khiển">
+        <span>❓</span> <span id="lbl-hud-help">Hướng Dẫn (H)</span>
       </button>
-      <span class="text-[#8b7355] px-0.5">|</span>
-      <span id="stage-title-badge" class="font-bold text-[#8c2d19] text-[13px]">📍 Màn 1: Vùng Tro Tàn</span>
+      <button id="btn-platform-toggle" onclick="togglePlatformMode()" class="ink-btn px-2 py-0.5 text-[12px] sm:text-[12.5px] font-bold flex items-center gap-1 border border-[#8b7355]/40 text-[#8c2d19] hover:bg-[#8c2d19] hover:text-[#fdf6e9] transition shadow-sm" title="Chuyển đổi chế độ PC / Mobile">
+        <span id="platform-icon">🖥️</span> <span id="platform-text">PC</span>
+      </button>
+      <span class="text-[#8b7355] px-0.5 hidden sm:inline">|</span>
+      <span id="stage-title-badge" class="font-bold text-[#8c2d19] text-[12.5px] sm:text-[13px]">📍 Màn 1: Vùng Tro Tàn</span>
     </div>
 
     <!-- Các phần tử trạng thái ẩn để giữ nguyên tương thích logic JS -->
@@ -885,7 +890,7 @@ window.MAM_ITEMS = {
 
     <!-- Bottom Letterbox Bar -->
     <div class="w-full h-14 sm:h-16 bg-[#14100c] border-t border-[#2c1d11] shadow-lg flex items-center justify-center px-6 z-10">
-      <span class="text-[#8b7355] text-xs italic">Bấm phím [Space] hoặc [Enter] để tiếp tục</span>
+      <span id="cutscene-bottom-hint" class="text-[#8b7355] text-xs italic">Bấm phím [Space] hoặc [Enter] để tiếp tục</span>
     </div>
   </div>
 
@@ -909,6 +914,55 @@ window.MAM_ITEMS = {
         Đang thực hiện
       </span>
       <button onclick="skipIntroCutscene()" class="text-xs text-[#8b7355] hover:text-[#8c2d19] px-1 font-bold transition" title="Ẩn hướng dẫn">✕</button>
+    </div>
+  </div>
+
+  <!-- ======================================================= -->
+  <!-- BẢNG ĐIỀU KHIỂN CẢM ỨNG CHO THIẾT BỊ DI ĐỘNG (MOBILE UI) -->
+  <!-- ======================================================= -->
+  <div id="mobile-touch-controls" class="hidden fixed inset-x-0 bottom-0 z-35 pointer-events-none select-none pb-3 sm:pb-5 px-3 sm:px-6 flex justify-between items-end">
+    <!-- Cụm Điều Hướng Trái (Left D-Pad: Trái, Phải & Chạy Nhanh) -->
+    <div class="pointer-events-auto flex items-center gap-2 sm:gap-3 bg-[#fdf6e9]/90 backdrop-blur-md p-2 rounded-3xl border-2 border-[#8b7355]/60 shadow-2xl">
+      <!-- Nút Đi Trái -->
+      <button id="touch-btn-left" class="w-13 h-13 sm:w-16 sm:h-16 rounded-2xl bg-[#d7c9b1] active:bg-[#8c2d19] active:text-[#fdf6e9] text-[#2c1d11] font-black text-2xl flex items-center justify-center border-2 border-[#8b7355] shadow transition-transform active:scale-95 touch-none" aria-label="Đi Trái">
+        ◀
+      </button>
+      <!-- Nút Chạy Nhanh (Sprint / Shift toggle) -->
+      <button id="touch-btn-shift" class="w-11 h-11 sm:w-13 sm:h-13 rounded-xl bg-[#e2d5c3] text-[#8c2d19] font-black text-base flex flex-col items-center justify-center border-2 border-[#8b7355]/70 shadow transition-transform active:scale-95 touch-none" aria-label="Chạy Nhanh">
+        <span>⚡</span>
+        <span class="text-[9px] uppercase tracking-tighter -mt-1 font-bold">Chạy</span>
+      </button>
+      <!-- Nút Đi Phải -->
+      <button id="touch-btn-right" class="w-13 h-13 sm:w-16 sm:h-16 rounded-2xl bg-[#d7c9b1] active:bg-[#8c2d19] active:text-[#fdf6e9] text-[#2c1d11] font-black text-2xl flex items-center justify-center border-2 border-[#8b7355] shadow transition-transform active:scale-95 touch-none" aria-label="Đi Phải">
+        ▶
+      </button>
+    </div>
+
+    <!-- Cụm Hành Động Phải (Right Action Cluster: Nhảy, Tương tác, Nở hoa, Thiền) -->
+    <div class="pointer-events-auto flex items-end gap-2 sm:gap-3 bg-[#fdf6e9]/90 backdrop-blur-md p-2 rounded-3xl border-2 border-[#8b7355]/60 shadow-2xl">
+      <!-- Cột phụ: Nở hoa & Thiền -->
+      <div class="flex flex-col gap-2">
+        <button id="touch-btn-bloom" class="w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-[#fce7f3] text-[#be185d] border-2 border-[#f472b6] shadow flex flex-col items-center justify-center active:scale-95 transition touch-none" aria-label="Nở Hoa / Búp">
+          <span class="text-sm">🌸</span>
+          <span class="text-[9px] -mt-1 font-bold">Nở/Búp</span>
+        </button>
+        <button id="touch-btn-meditate" class="w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-[#dcfce7] text-[#15803d] border-2 border-[#86efac] shadow flex flex-col items-center justify-center active:scale-95 transition touch-none" aria-label="Thiền Định">
+          <span class="text-sm">🧘</span>
+          <span class="text-[9px] -mt-1 font-bold">Thiền</span>
+        </button>
+      </div>
+
+      <!-- Nút Tương Tác (F) -->
+      <button id="touch-btn-interact" class="w-13 h-13 sm:w-14 sm:h-14 rounded-2xl bg-[#8c2d19] text-[#fdf6e9] border-2 border-[#2c1d11] shadow-lg flex flex-col items-center justify-center active:scale-95 transition touch-none" aria-label="Tương Tác">
+        <span class="text-lg">💬</span>
+        <span class="text-[9px] -mt-1 font-bold">Tương Tác</span>
+      </button>
+
+      <!-- Nút Bật Nhảy Lớn (Space / Jump) -->
+      <button id="touch-btn-jump" class="w-15 h-15 sm:w-18 sm:h-18 rounded-2xl bg-gradient-to-t from-[#1e3a24] to-[#2e5a36] text-[#fdf6e9] border-2 border-[#86efac] shadow-xl flex flex-col items-center justify-center active:scale-90 transition touch-none" aria-label="Bật Nhảy">
+        <span class="text-2xl">🦘</span>
+        <span class="text-[10px] -mt-1 font-black uppercase tracking-wider">Nhảy</span>
+      </button>
     </div>
   </div>
 
@@ -944,7 +998,7 @@ window.MAM_ITEMS = {
           <span>⚖️</span> <span>Cơ Chế Nắng - Nước - Tâm Lý</span>
         </button>
         <button id="help-tab-btn-keys" onclick="switchHelpTab('keys')" class="px-3 sm:px-4 py-1.5 text-xs sm:text-sm font-bold text-[#5c4028] hover:text-[#8c2d19] rounded-t transition flex items-center gap-1.5">
-          <span>⌨️</span> <span>Bảng Phím Tắt</span>
+          <span id="help-keys-tab-icon">⌨️</span> <span id="help-keys-tab-title">Bảng Phím Tắt</span>
         </button>
       </div>
 
@@ -954,7 +1008,7 @@ window.MAM_ITEMS = {
           <div class="w-7 h-7 rounded-full bg-[#2e5a36] text-[#fdf6e9] font-bold flex items-center justify-center shrink-0 text-xs shadow">1</div>
           <div class="text-xs">
             <div class="font-bold text-[#2e5a36] text-[13.5px]">Bước 1 • Bước Đi Thong Thả</div>
-            <div class="mt-0.5 text-[#3b2818] leading-relaxed">Nhấn giữ phím <b>[A]</b> hoặc <b>[D]</b> (hoặc phím Mũi Tên Trái / Phải) để bước đi chậm rãi, giữ thăng bằng trên nền đất tro tàn.</div>
+            <div id="help-step-1-desc" class="mt-0.5 text-[#3b2818] leading-relaxed">Nhấn giữ phím <b>[A]</b> hoặc <b>[D]</b> (hoặc phím Mũi Tên Trái / Phải) để bước đi chậm rãi, giữ thăng bằng trên nền đất tro tàn.</div>
           </div>
         </div>
 
@@ -962,7 +1016,7 @@ window.MAM_ITEMS = {
           <div class="w-7 h-7 rounded-full bg-[#8c2d19] text-[#fdf6e9] font-bold flex items-center justify-center shrink-0 text-xs shadow">2</div>
           <div class="text-xs">
             <div class="font-bold text-[#8c2d19] text-[13.5px]">Bước 2 • Dồn Sức Chạy Nhanh Vượt Hiểm</div>
-            <div class="mt-0.5 text-[#3b2818] leading-relaxed">Giữ phím <b>[Shift]</b> kết hợp <b>[A] / [D]</b> để tăng tốc chạy lướt. Kỹ năng này bắt buộc phải dùng để vượt qua <b>Vùng Gò Đất Cống Xả Ô Nhiễm</b> trước khi khí độc rút cạn sinh lực Mầm!</div>
+            <div id="help-step-2-desc" class="mt-0.5 text-[#3b2818] leading-relaxed">Giữ phím <b>[Shift]</b> kết hợp <b>[A] / [D]</b> để tăng tốc chạy lướt. Kỹ năng này bắt buộc phải dùng để vượt qua <b>Vùng Gò Đất Cống Xả Ô Nhiễm</b> trước khi khí độc rút cạn sinh lực Mầm!</div>
           </div>
         </div>
 
@@ -970,7 +1024,7 @@ window.MAM_ITEMS = {
           <div class="w-7 h-7 rounded-full bg-[#b45309] text-[#fdf6e9] font-bold flex items-center justify-center shrink-0 text-xs shadow">3</div>
           <div class="text-xs">
             <div class="font-bold text-[#b45309] text-[13.5px]">Bước 3 • Nhún Chân Bật Nhảy Qua Chướng Ngại</div>
-            <div class="mt-0.5 text-[#3b2818] leading-relaxed">Nhấn phím <b>[Space]</b> (Phím Cách) hoặc <b>[W]</b> (hoặc Mũi Tên Lên). Game có cơ chế <i>Coyote Time & Jump Buffering</i> giúp nhún chân bật cao êm ái vượt qua các bậc đá và phiến lá sen.</div>
+            <div id="help-step-3-desc" class="mt-0.5 text-[#3b2818] leading-relaxed">Nhấn phím <b>[Space]</b> (Phím Cách) hoặc <b>[W]</b> (hoặc Mũi Tên Lên). Game có cơ chế <i>Coyote Time & Jump Buffering</i> giúp nhún chân bật cao êm ái vượt qua các bậc đá và phiến lá sen.</div>
           </div>
         </div>
 
@@ -978,7 +1032,7 @@ window.MAM_ITEMS = {
           <div class="w-7 h-7 rounded-full bg-rose-600 text-[#fdf6e9] font-bold flex items-center justify-center shrink-0 text-xs shadow">4</div>
           <div class="text-xs">
             <div class="font-bold text-rose-700 text-[13.5px]">Bước 4 • Nở Hoa & Khép Cánh Cứu Sinh</div>
-            <div class="mt-0.5 text-[#3b2818] leading-relaxed">Bấm phím <b>[E]</b> để đổi giữa 2 hình thái:
+            <div id="help-step-4-desc" class="mt-0.5 text-[#3b2818] leading-relaxed">Bấm phím <b>[E]</b> để đổi giữa 2 hình thái:
               <ul class="list-disc pl-4 mt-1 space-y-0.5 text-[#5c4028]">
                 <li>Khi bị <b>Bỏng Nắng</b> (Nắng &gt; Nước ≥ 25%): Bấm <b>[E]</b> khép búp giữ ẩm.</li>
                 <li>Khi bị <b>Úng Nước</b> (Nước &gt; Nắng ≥ 25%): Bấm <b>[E]</b> nở hoa đón nắng hong khô.</li>
@@ -991,7 +1045,7 @@ window.MAM_ITEMS = {
           <div class="w-7 h-7 rounded-full bg-sky-600 text-[#fdf6e9] font-bold flex items-center justify-center shrink-0 text-xs shadow">5</div>
           <div class="text-xs">
             <div class="font-bold text-sky-700 text-[13.5px]">Bước 5 • Bơi Hồ & Đạp Nước Vọt Lên Lá Sen (Màn 2)</div>
-            <div class="mt-0.5 text-[#3b2818] leading-relaxed">Khi rớt xuống hồ sen ở Màn 2, Mầm bơi nổi tự nhiên trên mặt hồ. Bạn được phép nhấn <b>[Space]</b> để <b>Đạp Nước vọt cao 1 lần duy nhất</b> bám lên phiến lá sen gần nhất!</div>
+            <div id="help-step-5-desc" class="mt-0.5 text-[#3b2818] leading-relaxed">Khi rớt xuống hồ sen ở Màn 2, Mầm bơi nổi tự nhiên trên mặt hồ. Bạn được phép nhấn <b>[Space]</b> để <b>Đạp Nước vọt cao 1 lần duy nhất</b> bám lên phiến lá sen gần nhất!</div>
           </div>
         </div>
 
@@ -999,7 +1053,7 @@ window.MAM_ITEMS = {
           <div class="w-7 h-7 rounded-full bg-[#65a30d] text-[#fdf6e9] font-bold flex items-center justify-center shrink-0 text-xs shadow">6</div>
           <div class="text-xs">
             <div class="font-bold text-[#4d7c0f] text-[13.5px]">Bước 6 • Tương Tác NPC & Lên Thuyền Xuôi Dòng</div>
-            <div class="mt-0.5 text-[#3b2818] leading-relaxed">Đến gần các điểm sáng, bảng chỉ dẫn, NPC (Bé Sen Nghé, Cụ Cốt, Dì Sen Thắm) hoặc bến thuyền cuối Màn 1, nhấn phím <b>[F]</b> để tương tác và lên thuyền nan xuôi dòng sang Màn 2.</div>
+            <div id="help-step-6-desc" class="mt-0.5 text-[#3b2818] leading-relaxed">Đến gần các điểm sáng, bảng chỉ dẫn, NPC (Bé Sen Nghé, Cụ Cốt, Dì Sen Thắm) hoặc bến thuyền cuối Màn 1, nhấn phím <b>[F]</b> để tương tác và lên thuyền nan xuôi dòng sang Màn 2.</div>
           </div>
         </div>
 
@@ -1007,7 +1061,7 @@ window.MAM_ITEMS = {
           <div class="w-7 h-7 rounded-full bg-purple-600 text-[#fdf6e9] font-bold flex items-center justify-center shrink-0 text-xs shadow">7</div>
           <div class="text-xs">
             <div class="font-bold text-purple-700 text-[13.5px]">Bước 7 • Mở Túi Đồ [I] & Nâng Cao Thích Nghi</div>
-            <div class="mt-0.5 text-[#3b2818] leading-relaxed">Nhấn <b>[I]</b> để mặc các bảo vật: Cánh Sen, Phấn Sen, Vòng Ngọc, Bộ Đồ Lam. Điểm Thích Nghi càng cao giúp Mầm miễn nhiễm hoàn toàn mọi khắc nghiệt thời tiết.</div>
+            <div id="help-step-7-desc" class="mt-0.5 text-[#3b2818] leading-relaxed">Nhấn <b>[I]</b> để mặc các bảo vật: Cánh Sen, Phấn Sen, Vòng Ngọc, Bộ Đồ Lam. Điểm Thích Nghi càng cao giúp Mầm miễn nhiễm hoàn toàn mọi khắc nghiệt thời tiết.</div>
           </div>
         </div>
       </div>
@@ -1047,9 +1101,10 @@ window.MAM_ITEMS = {
         </div>
       </div>
 
-      <!-- Tab 3: Bảng Phím Tắt Chi Tiết -->
+      <!-- Tab 3: Bảng Phím Tắt / Thao Tác Cảm Ứng -->
       <div id="help-tab-keys" class="hidden flex-1 overflow-y-auto mt-3 pr-1 text-[#2c1d11]">
-        <div class="ink-box p-3.5 space-y-2 text-xs">
+        <!-- Bảng Phím Tắt PC -->
+        <div id="help-keys-pc" class="ink-box p-3.5 space-y-2 text-xs">
           <div class="flex justify-between items-center py-1 border-b border-[#8b7355]/20">
             <span><b>[A] / [D]</b> hoặc <b>[←] / [→]</b></span>
             <span class="text-[#5c4028]">Bước đi chậm rãi tự nhiên</span>
@@ -1085,6 +1140,46 @@ window.MAM_ITEMS = {
           <div class="flex justify-between items-center py-1">
             <span><b>[H]</b></span>
             <span class="text-[#5c4028]">Mở bảng Hướng Dẫn Này</span>
+          </div>
+        </div>
+
+        <!-- Bảng Thao Tác Cảm Ứng Mobile -->
+        <div id="help-keys-mobile" class="hidden ink-box p-3.5 space-y-2 text-xs">
+          <div class="flex justify-between items-center py-1 border-b border-[#8b7355]/20">
+            <span>Nút <b>[◀]</b> và <b>[▶]</b> (Góc trái dưới)</span>
+            <span class="text-[#5c4028]">Chạm giữ để bước đi qua lại</span>
+          </div>
+          <div class="flex justify-between items-center py-1 border-b border-[#8b7355]/20">
+            <span>Nút <b>[⚡ Chạy]</b> (Góc trái dưới)</span>
+            <span class="text-[#5c4028]">Bật/Tắt chế độ chạy nhanh</span>
+          </div>
+          <div class="flex justify-between items-center py-1 border-b border-[#8b7355]/20">
+            <span>Nút <b>[🦘 Nhảy]</b> lớn (Góc phải dưới)</span>
+            <span class="text-[#5c4028]">Bật nhảy cao / Đạp nước hồ</span>
+          </div>
+          <div class="flex justify-between items-center py-1 border-b border-[#8b7355]/20">
+            <span>Nút <b>[💬 Tương Tác]</b> (Góc phải dưới)</span>
+            <span class="text-[#5c4028]">Trò chuyện NPC / Bến thuyền / Cửa Chùa</span>
+          </div>
+          <div class="flex justify-between items-center py-1 border-b border-[#8b7355]/20">
+            <span>Nút <b>[🌸 Nở/Búp]</b> (Góc phải dưới)</span>
+            <span class="text-[#5c4028]">Nở hoa hong khô / Khép búp giữ ẩm</span>
+          </div>
+          <div class="flex justify-between items-center py-1 border-b border-[#8b7355]/20">
+            <span>Nút <b>[🧘 Thiền]</b> (Góc phải dưới)</span>
+            <span class="text-[#5c4028]">Ngồi thiền định tâm hồi phục</span>
+          </div>
+          <div class="flex justify-between items-center py-1 border-b border-[#8b7355]/20">
+            <span>Nút <b>[🎒 Túi Đồ]</b> (Thanh trên đỉnh)</span>
+            <span class="text-[#5c4028]">Mở Túi Đồ & Trang Bị Thích Nghi</span>
+          </div>
+          <div class="flex justify-between items-center py-1 border-b border-[#8b7355]/20">
+            <span>Nút <b>[📜 Bản Đồ]</b> (Thanh trên đỉnh)</span>
+            <span class="text-[#5c4028]">Xem bản đồ & dịch chuyển màn chơi</span>
+          </div>
+          <div class="flex justify-between items-center py-1">
+            <span>Nút <b>[🖥️/📱]</b> (Thanh trên đỉnh)</span>
+            <span class="text-[#5c4028]">Chuyển đổi tức thời giữa PC & Mobile</span>
           </div>
         </div>
       </div>
@@ -2228,10 +2323,13 @@ window.MAM_ITEMS = {
       const descEl = document.getElementById('tut-desc');
       const badgeEl = document.getElementById('tut-progress-badge');
 
+      const isMob = (currentPlatform === 'mobile');
       if (tutorialState.step === 1) {
         if (iconEl) iconEl.textContent = '🚶';
         if (titleEl) titleEl.textContent = 'Bước 1 / 4';
-        if (descEl) descEl.innerHTML = 'Nhấn phím <b>[A]</b> hoặc <b>[D]</b> (hoặc Mũi Tên) để bước đi';
+        if (descEl) descEl.innerHTML = isMob
+          ? 'Chạm giữ nút <b>[◀]</b> hoặc <b>[▶]</b> bên trái để bước đi'
+          : 'Nhấn phím <b>[A]</b> hoặc <b>[D]</b> (hoặc Mũi Tên) để bước đi';
         if (badgeEl) {
           badgeEl.textContent = 'Đang thực hiện';
           badgeEl.className = 'px-2 py-0.5 bg-[#8b7355]/20 text-[#5c4028] text-[11px] font-bold rounded-full border border-[#8b7355]/40';
@@ -2239,7 +2337,9 @@ window.MAM_ITEMS = {
       } else if (tutorialState.step === 2) {
         if (iconEl) iconEl.textContent = '⚡';
         if (titleEl) titleEl.textContent = 'Bước 2 / 4';
-        if (descEl) descEl.innerHTML = 'Giữ phím <b>[Shift]</b> kết hợp <b>[A] / [D]</b> để chạy lướt nhanh';
+        if (descEl) descEl.innerHTML = isMob
+          ? 'Chạm nút <b>[⚡ Chạy]</b> kết hợp di chuyển để chạy nhanh'
+          : 'Giữ phím <b>[Shift]</b> kết hợp <b>[A] / [D]</b> để chạy lướt nhanh';
         if (badgeEl) {
           badgeEl.textContent = 'Đang thực hiện';
           badgeEl.className = 'px-2 py-0.5 bg-[#8b7355]/20 text-[#5c4028] text-[11px] font-bold rounded-full border border-[#8b7355]/40';
@@ -2247,7 +2347,9 @@ window.MAM_ITEMS = {
       } else if (tutorialState.step === 3) {
         if (iconEl) iconEl.textContent = '🦘';
         if (titleEl) titleEl.textContent = 'Bước 3 / 4';
-        if (descEl) descEl.innerHTML = 'Nhấn phím <b>[Space]</b> hoặc <b>[W]</b> để nhún chân bật nhảy';
+        if (descEl) descEl.innerHTML = isMob
+          ? 'Chạm nút <b>[🦘 Nhảy]</b> bên phải để nhún chân bật nhảy'
+          : 'Nhấn phím <b>[Space]</b> hoặc <b>[W]</b> để nhún chân bật nhảy';
         if (badgeEl) {
           badgeEl.textContent = 'Đang thực hiện';
           badgeEl.className = 'px-2 py-0.5 bg-[#8b7355]/20 text-[#5c4028] text-[11px] font-bold rounded-full border border-[#8b7355]/40';
@@ -2255,7 +2357,9 @@ window.MAM_ITEMS = {
       } else if (tutorialState.step === 4) {
         if (iconEl) iconEl.textContent = '🌸';
         if (titleEl) titleEl.textContent = 'Bước 4 / 4';
-        if (descEl) descEl.innerHTML = 'Nhấn phím <b>[E]</b> để xòe nở đón nắng hoặc khép búp giữ nước';
+        if (descEl) descEl.innerHTML = isMob
+          ? 'Chạm nút <b>[🌸 Nở/Búp]</b> để đón nắng hoặc khép búp giữ nước'
+          : 'Nhấn phím <b>[E]</b> để xòe nở đón nắng hoặc khép búp giữ nước';
         if (badgeEl) {
           badgeEl.textContent = 'Đang thực hiện';
           badgeEl.className = 'px-2 py-0.5 bg-[#8b7355]/20 text-[#5c4028] text-[11px] font-bold rounded-full border border-[#8b7355]/40';
@@ -2771,6 +2875,266 @@ window.MAM_ITEMS = {
 
     let activeNearestInteractable = null;
 
+        // =========================================================
+    // HỆ THỐNG ĐIỀU KHIỂN ĐA NỀN TẢNG (PC & MOBILE MODES)
+    // =========================================================
+    const touchControls = {
+      left: false,
+      right: false,
+      shift: false
+    };
+
+    let currentPlatform = 'pc';
+
+    function detectPlatform() {
+      const saved = localStorage.getItem('mam_game_platform');
+      if (saved === 'pc' || saved === 'mobile') {
+        return saved;
+      }
+      const isMobileUA = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+      const isTouch = (('ontouchstart' in window) || (navigator.maxTouchPoints > 0) || (window.matchMedia && window.matchMedia('(pointer: coarse)').matches)) && window.innerWidth <= 1024;
+      return (isMobileUA || isTouch) ? 'mobile' : 'pc';
+    }
+
+    function togglePlatformMode() {
+      const next = (currentPlatform === 'pc' ? 'mobile' : 'pc');
+      setPlatformMode(next, true);
+    }
+
+    function setPlatformMode(mode, userInitiated = false) {
+      currentPlatform = mode;
+      localStorage.setItem('mam_game_platform', mode);
+      applyPlatformUI();
+      if (userInitiated) {
+        spawnIdleFunNote(player.x, player.footY - 85, mode === 'mobile' ? '📱 Đã bật chế độ Mobile (Cảm Ứng)' : '🖥️ Đã bật chế độ PC (Bàn Phím)', '#2e5a36');
+      }
+    }
+
+    function updateHelpStepsText(isMob) {
+      const s1 = document.getElementById('help-step-1-desc');
+      if (s1) s1.innerHTML = isMob
+        ? 'Chạm giữ nút mũi tên <b>[◀]</b> hoặc <b>[▶]</b> góc trái dưới để bước đi chậm rãi, giữ thăng bằng trên nền đất tro tàn.'
+        : 'Nhấn giữ phím <b>[A]</b> hoặc <b>[D]</b> (hoặc phím Mũi Tên Trái / Phải) để bước đi chậm rãi, giữ thăng bằng trên nền đất tro tàn.';
+
+      const s2 = document.getElementById('help-step-2-desc');
+      if (s2) s2.innerHTML = isMob
+        ? 'Chạm nút <b>[⚡ Chạy]</b> kết hợp nút di chuyển để tăng tốc chạy lướt. Kỹ năng này bắt buộc phải dùng để vượt qua <b>Vùng Gò Đất Cống Xả Ô Nhiễm</b> trước khi khí độc rút cạn sinh lực Mầm!'
+        : 'Giữ phím <b>[Shift]</b> kết hợp <b>[A] / [D]</b> để tăng tốc chạy lướt. Kỹ năng này bắt buộc phải dùng để vượt qua <b>Vùng Gò Đất Cống Xả Ô Nhiễm</b> trước khi khí độc rút cạn sinh lực Mầm!';
+
+      const s3 = document.getElementById('help-step-3-desc');
+      if (s3) s3.innerHTML = isMob
+        ? 'Chạm nút <b>[🦘 Nhảy]</b> lớn ở góc phải để nhún chân bật cao êm ái vượt qua các bậc đá và phiến lá sen (hỗ trợ nhảy đệm).'
+        : 'Nhấn phím <b>[Space]</b> (Phím Cách) hoặc <b>[W]</b> (hoặc Mũi Tên Lên). Game có cơ chế <i>Coyote Time & Jump Buffering</i> giúp nhún chân bật cao êm ái vượt qua các bậc đá và phiến lá sen.';
+
+      const s4 = document.getElementById('help-step-4-desc');
+      if (s4) s4.innerHTML = isMob
+        ? 'Chạm nút <b>[🌸 Nở/Búp]</b> để đổi giữa 2 hình thái: xòe nở hoa đón nắng hong khô (khi Úng Nước), hoặc khép búp giữ ẩm (khi Bỏng Nắng).'
+        : 'Bấm phím <b>[E]</b> để đổi giữa 2 hình thái:<ul class="list-disc pl-4 mt-1 space-y-0.5 text-[#5c4028]"><li>Khi bị <b>Bỏng Nắng</b> (Nắng &gt; Nước ≥ 25%): Bấm <b>[E]</b> khép búp giữ ẩm.</li><li>Khi bị <b>Úng Nước</b> (Nước &gt; Nắng ≥ 25%): Bấm <b>[E]</b> nở hoa đón nắng hong khô.</li></ul>';
+
+      const s5 = document.getElementById('help-step-5-desc');
+      if (s5) s5.innerHTML = isMob
+        ? 'Khi rớt xuống hồ sen ở Màn 2, chạm nút <b>[🦘 Nhảy]</b> để <b>Đạp Nước vọt cao 1 lần duy nhất</b> bám lên phiến lá sen gần nhất!'
+        : 'Khi rớt xuống hồ sen ở Màn 2, Mầm bơi nổi tự nhiên trên mặt hồ. Bạn được phép nhấn <b>[Space]</b> để <b>Đạp Nước vọt cao 1 lần duy nhất</b> bám lên phiến lá sen gần nhất!';
+
+      const s6 = document.getElementById('help-step-6-desc');
+      if (s6) s6.innerHTML = isMob
+        ? 'Đến gần NPC, bảng chỉ dẫn hoặc bến thuyền cuối Màn 1, nút <b>[💬 Tương Tác]</b> sẽ sáng lên. Chạm nút để tương tác và lên thuyền nan xuôi dòng sang Màn 2.'
+        : 'Đến gần các điểm sáng, bảng chỉ dẫn, NPC (Bé Sen Nghé, Cụ Cốt, Dì Sen Thắm) hoặc bến thuyền cuối Màn 1, nhấn phím <b>[F]</b> để tương tác và lên thuyền nan xuôi dòng sang Màn 2.';
+
+      const s7 = document.getElementById('help-step-7-desc');
+      if (s7) s7.innerHTML = isMob
+        ? 'Chạm nút <b>[🎒 Túi Đồ]</b> trên thanh công cụ trên cùng để mở hành trang, chạm từng món bảo vật để mặc tăng Độ Thích Nghi.'
+        : 'Nhấn <b>[I]</b> để mặc các bảo vật: Cánh Sen, Phấn Sen, Vòng Ngọc, Bộ Đồ Lam. Điểm Thích Nghi càng cao giúp Mầm miễn nhiễm hoàn toàn mọi khắc nghiệt thời tiết.';
+    }
+
+    function applyPlatformUI() {
+      const isMob = (currentPlatform === 'mobile');
+      document.body.classList.toggle('platform-mobile', isMob);
+      document.body.classList.toggle('platform-pc', !isMob);
+
+      // Nút chuyển chế độ
+      const iconEl = document.getElementById('platform-icon');
+      const textEl = document.getElementById('platform-text');
+      if (iconEl) iconEl.textContent = isMob ? '📱' : '🖥️';
+      if (textEl) textEl.textContent = isMob ? 'Mobile' : 'PC';
+
+      // Nút điều khiển cảm ứng
+      const touchControlsEl = document.getElementById('mobile-touch-controls');
+      if (touchControlsEl) {
+        if (isMob) touchControlsEl.classList.remove('hidden');
+        else touchControlsEl.classList.add('hidden');
+      }
+
+      // Top HUD labels
+      const lblMap = document.getElementById('lbl-hud-map');
+      if (lblMap) lblMap.textContent = isMob ? 'Bản Đồ' : 'Bản Đồ (M)';
+      const lblInv = document.getElementById('lbl-hud-inv');
+      if (lblInv) lblInv.textContent = isMob ? 'Túi Đồ' : 'Hành Trang (I)';
+      const lblHelp = document.getElementById('lbl-hud-help');
+      if (lblHelp) lblHelp.textContent = isMob ? 'Hướng Dẫn' : 'Hướng Dẫn (H)';
+
+      // Cutscene bottom hint
+      const cutHint = document.getElementById('cutscene-bottom-hint');
+      if (cutHint) {
+        cutHint.textContent = isMob ? 'Chạm nút [Bắt Đầu Bước Đi] hoặc chạm màn hình để tiếp tục' : 'Bấm phím [Space] hoặc [Enter] để tiếp tục';
+      }
+
+      // Help Modal Tab 3 Title & Content
+      const helpKeysTabTitle = document.getElementById('help-keys-tab-title');
+      const helpKeysTabIcon = document.getElementById('help-keys-tab-icon');
+      if (helpKeysTabTitle) helpKeysTabTitle.textContent = isMob ? 'Thao Tác Cảm Ứng' : 'Bảng Phím Tắt';
+      if (helpKeysTabIcon) helpKeysTabIcon.textContent = isMob ? '📱' : '⌨️';
+
+      const keysPcEl = document.getElementById('help-keys-pc');
+      const keysMobEl = document.getElementById('help-keys-mobile');
+      if (keysPcEl && keysMobEl) {
+        if (isMob) {
+          keysPcEl.classList.add('hidden');
+          keysMobEl.classList.remove('hidden');
+        } else {
+          keysPcEl.classList.remove('hidden');
+          keysMobEl.classList.add('hidden');
+        }
+      }
+
+      // Help Modal Step-by-Step text
+      updateHelpStepsText(isMob);
+
+      // Cập nhật banner hướng dẫn nếu đang chạy
+      renderTutorialBanner();
+    }
+
+    function triggerPlayerJump() {
+      if (introCutsceneActive) {
+        startMovementTutorial();
+        return;
+      }
+      if (player.isDead) {
+        retryCurrentStage();
+        return;
+      }
+      player.jumpBufferTimer = 0.14; // Jump Buffering 0.14s chuẩn Indie AAA
+      if (player.coyoteTimer > 0 && player.state !== 'jump') {
+        startJump();
+        if (typeof advanceTutorial === 'function') advanceTutorial(3);
+      } else if (inventory.hoa_sen && player.doubleJumpLeft > 0 && !player.isDead) {
+        // DOUBLE JUMP từ Bông Hoa Sen Tươi!
+        player.doubleJumpLeft = 0;
+        player.vy = -620;
+        player.state = 'jump';
+        player.frameIndex = 0;
+        player.frameTimer = 0;
+        triggerCocoScale(0.92, 1.15, (player.vx >= 0 ? 1 : -1) * 0.7);
+        spawnFootParticles(player.x, player.footY - 20, 'petal', 24);
+        spawnIdleFunNote(player.x, player.footY - 80, '🌸 Bật Nhảy Đôi (Double Jump)! 🪷', '#e11d48');
+        if (typeof advanceTutorial === 'function') advanceTutorial(3);
+      } else {
+        // Kiểm tra nếu đang ở trên/trong mặt nước hồ (Đầm sen 1 hoặc 2)
+        const isOverPondZone = (currentStage === 2 && ((player.x > 960 && player.x < 3080) || (player.x > 6240 && player.x < 9380)));
+        if (isOverPondZone && !player.onLotusPad && player.footY >= 704) {
+          if (player.footY <= 725) {
+            performWaterJump();
+          } else {
+            // Khi đang lặn sâu dưới hồ: đạp chân bơi ngoi lên mạnh mẽ!
+            player.vy = -300;
+            spawnFootParticles(player.x, player.footY - 15, 'bubble', 3);
+            spawnWaterRipple(player.x, 706, 60, 'rgba(56, 189, 248, 0.7)');
+          }
+          if (typeof advanceTutorial === 'function') advanceTutorial(3);
+        }
+      }
+    }
+
+    function initTouchListeners() {
+      const btnLeft = document.getElementById('touch-btn-left');
+      const btnRight = document.getElementById('touch-btn-right');
+      const btnShift = document.getElementById('touch-btn-shift');
+      const btnJump = document.getElementById('touch-btn-jump');
+      const btnInteract = document.getElementById('touch-btn-interact');
+      const btnBloom = document.getElementById('touch-btn-bloom');
+      const btnMeditate = document.getElementById('touch-btn-meditate');
+
+      if (btnLeft) {
+        const handleStart = (e) => { e.preventDefault(); touchControls.left = true; btnLeft.classList.add('bg-[#8c2d19]', 'text-[#fdf6e9]'); };
+        const handleEnd = (e) => { e.preventDefault(); touchControls.left = false; btnLeft.classList.remove('bg-[#8c2d19]', 'text-[#fdf6e9]'); };
+        btnLeft.addEventListener('touchstart', handleStart, { passive: false });
+        btnLeft.addEventListener('touchend', handleEnd, { passive: false });
+        btnLeft.addEventListener('touchcancel', handleEnd, { passive: false });
+        btnLeft.addEventListener('mousedown', handleStart);
+        btnLeft.addEventListener('mouseup', handleEnd);
+        btnLeft.addEventListener('mouseleave', handleEnd);
+      }
+
+      if (btnRight) {
+        const handleStart = (e) => { e.preventDefault(); touchControls.right = true; btnRight.classList.add('bg-[#8c2d19]', 'text-[#fdf6e9]'); };
+        const handleEnd = (e) => { e.preventDefault(); touchControls.right = false; btnRight.classList.remove('bg-[#8c2d19]', 'text-[#fdf6e9]'); };
+        btnRight.addEventListener('touchstart', handleStart, { passive: false });
+        btnRight.addEventListener('touchend', handleEnd, { passive: false });
+        btnRight.addEventListener('touchcancel', handleEnd, { passive: false });
+        btnRight.addEventListener('mousedown', handleStart);
+        btnRight.addEventListener('mouseup', handleEnd);
+        btnRight.addEventListener('mouseleave', handleEnd);
+      }
+
+      if (btnShift) {
+        const toggleShift = (e) => {
+          e.preventDefault();
+          touchControls.shift = !touchControls.shift;
+          if (touchControls.shift) {
+            btnShift.classList.add('bg-[#ea580c]', 'text-white', 'ring-2', 'ring-[#fde047]');
+            btnShift.classList.remove('bg-[#e2d5c3]', 'text-[#8c2d19]');
+            spawnIdleFunNote(player.x, player.footY - 60, '⚡ Bật Chạy Nhanh', '#ea580c');
+          } else {
+            btnShift.classList.remove('bg-[#ea580c]', 'text-white', 'ring-2', 'ring-[#fde047]');
+            btnShift.classList.add('bg-[#e2d5c3]', 'text-[#8c2d19]');
+            spawnIdleFunNote(player.x, player.footY - 60, 'Đi Thường', '#5c4028');
+          }
+        };
+        btnShift.addEventListener('touchstart', toggleShift, { passive: false });
+        btnShift.addEventListener('mousedown', toggleShift);
+      }
+
+      if (btnJump) {
+        const handleJump = (e) => {
+          e.preventDefault();
+          triggerPlayerJump();
+        };
+        btnJump.addEventListener('touchstart', handleJump, { passive: false });
+        btnJump.addEventListener('mousedown', handleJump);
+      }
+
+      if (btnInteract) {
+        const handleInteract = (e) => {
+          e.preventDefault();
+          if (activeNearestInteractable) {
+            triggerInteractionPrompt(activeNearestInteractable);
+          } else {
+            spawnIdleFunNote(player.x, player.footY - 60, 'Không có ai ở gần để tương tác', '#8b7355');
+          }
+        };
+        btnInteract.addEventListener('touchstart', handleInteract, { passive: false });
+        btnInteract.addEventListener('mousedown', handleInteract);
+      }
+
+      if (btnBloom) {
+        const handleBloom = (e) => {
+          e.preventDefault();
+          triggerBloomToggle();
+        };
+        btnBloom.addEventListener('touchstart', handleBloom, { passive: false });
+        btnBloom.addEventListener('mousedown', handleBloom);
+      }
+
+      if (btnMeditate) {
+        const handleMeditate = (e) => {
+          e.preventDefault();
+          triggerAction('meditate');
+        };
+        btnMeditate.addEventListener('touchstart', handleMeditate, { passive: false });
+        btnMeditate.addEventListener('mousedown', handleMeditate);
+      }
+    }
+
     const keys = {};
     window.addEventListener('keydown', (e) => {
       const k = e.key.toLowerCase();
@@ -2825,33 +3189,7 @@ window.MAM_ITEMS = {
       }
 
             if ((k === 'w' || k === ' ' || k === 'arrowup')) {
-        player.jumpBufferTimer = 0.14; // Jump Buffering 0.14s chuẩn Indie AAA
-        if (player.coyoteTimer > 0 && player.state !== 'jump') {
-          startJump();
-        } else if (inventory.hoa_sen && player.doubleJumpLeft > 0 && !player.isDead) {
-          // DOUBLE JUMP từ Bông Hoa Sen Tươi!
-          player.doubleJumpLeft = 0;
-          player.vy = -620;
-          player.state = 'jump';
-          player.frameIndex = 0;
-          player.frameTimer = 0;
-          triggerCocoScale(0.92, 1.15, (player.vx >= 0 ? 1 : -1) * 0.7);
-          spawnFootParticles(player.x, player.footY - 20, 'petal', 24);
-          spawnIdleFunNote(player.x, player.footY - 80, '🌸 Bật Nhảy Đôi (Double Jump)! 🪷', '#e11d48');
-        } else {
-          // Kiểm tra nếu đang ở trên/trong mặt nước hồ (Đầm sen 1 hoặc 2)
-          const isOverPondZone = (currentStage === 2 && ((player.x > 960 && player.x < 3080) || (player.x > 6240 && player.x < 9380)));
-          if (isOverPondZone && !player.onLotusPad && player.footY >= 704) {
-            if (player.footY <= 725) {
-              performWaterJump();
-            } else {
-              // Khi đang lặn sâu dưới hồ: đạp chân bơi ngoi lên mạnh mẽ!
-              player.vy = -300;
-              spawnFootParticles(player.x, player.footY - 15, 'bubble', 3);
-              spawnWaterRipple(player.x, 706, 60, 'rgba(56, 189, 248, 0.7)');
-            }
-          }
-        }
+        triggerPlayerJump();
       } else if (k === 'f') {
         if (activeNearestInteractable) {
           triggerInteractionPrompt(activeNearestInteractable);
@@ -4102,9 +4440,9 @@ window.MAM_ITEMS = {
         }
       }
 
-      const moveLeft = !introCutsceneActive && !player.isDead && !inkTransition.active && (keys['a'] || keys['arrowleft']);
-      const moveRight = !introCutsceneActive && !player.isDead && !inkTransition.active && (keys['d'] || keys['arrowright']);
-      let isShift = !introCutsceneActive && !player.isDead && keys['shift'];
+      const moveLeft = !introCutsceneActive && !player.isDead && !inkTransition.active && (keys['a'] || keys['arrowleft'] || touchControls.left);
+      const moveRight = !introCutsceneActive && !player.isDead && !inkTransition.active && (keys['d'] || keys['arrowright'] || touchControls.right);
+      let isShift = !introCutsceneActive && !player.isDead && (keys['shift'] || touchControls.shift);
 
       if (introCutsceneActive) {
         player.vx = 0;
@@ -4736,7 +5074,7 @@ window.MAM_ITEMS = {
       }
       cameraY += (targetCamY - cameraY) * Math.min(1, 4.8 * dt);
 
-      // Tìm điểm tương tác gần nhất để hiển thị nút [F]
+      // Tìm điểm tương tác gần nhất để hiển thị nút [F] / [💬]
       activeNearestInteractable = null;
       let bestDist = Infinity;
       for (const item of st.interactables) {
@@ -4744,6 +5082,16 @@ window.MAM_ITEMS = {
         if (d <= item.radius && d < bestDist) {
           bestDist = d;
           activeNearestInteractable = item;
+        }
+      }
+
+      // Cập nhật hiệu ứng phát sáng cho nút Tương Tác Mobile khi đứng gần
+      const touchInteractBtn = document.getElementById('touch-btn-interact');
+      if (touchInteractBtn) {
+        if (activeNearestInteractable) {
+          touchInteractBtn.classList.add('ring-4', 'ring-[#fbbf24]', 'shadow-[0_0_15px_rgba(251,191,36,0.8)]', 'scale-105');
+        } else {
+          touchInteractBtn.classList.remove('ring-4', 'ring-[#fbbf24]', 'shadow-[0_0_15px_rgba(251,191,36,0.8)]', 'scale-105');
         }
       }
 
@@ -4882,7 +5230,9 @@ window.MAM_ITEMS = {
       // Render toàn bộ Màn chơi, Tiền cảnh Parallax, Tia nắng & Mực loang điện ảnh
       drawStageWorld(ctx, W, H, viewScale, st, cond, now, dt);
 
-      requestAnimationFrame(gameLoop);
+      initTouchListeners();
+    setPlatformMode(detectPlatform());
+    requestAnimationFrame(gameLoop);
     }
 
     // =========================================================
@@ -5830,12 +6180,17 @@ window.MAM_ITEMS = {
           ctx.stroke();
         }
 
-        // Vẽ chữ "F" rõ nét, nổi bật bên trong nút tròn hoàng kim
+        // Vẽ chữ "F" (PC) hoặc biểu tượng "💬" (Mobile) bên trong nút tròn hoàng kim
         ctx.fillStyle = '#5c3317';
-        ctx.font = '900 18px "Montserrat", sans-serif';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
-        ctx.fillText('F', centerBtnX, centerBtnY);
+        if (currentPlatform === 'mobile') {
+          ctx.font = 'bold 16px "Montserrat", sans-serif';
+          ctx.fillText('💬', centerBtnX, centerBtnY);
+        } else {
+          ctx.font = '900 18px "Montserrat", sans-serif';
+          ctx.fillText('F', centerBtnX, centerBtnY);
+        }
       }
 
       ctx.restore();
