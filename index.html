@@ -2961,7 +2961,71 @@ window.MAM_ITEMS = {
 
     let activeNearestInteractable = null;
 
-        // =========================================================
+    // =========================================================
+    // QUẢN LÝ TOÀN MÀN HÌNH & TỰ ĐỘNG XOAY MÀN HÌNH (FULLSCREEN & ORIENTATION)
+    // =========================================================
+    function toggleAppFullscreen() {
+      if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+        requestAppFullscreen();
+      } else {
+        if (document.exitFullscreen) document.exitFullscreen().catch(() => {});
+        else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+      }
+    }
+
+    function requestAppFullscreen() {
+      const docEl = document.documentElement;
+      const rfs = docEl.requestFullscreen || docEl.webkitRequestFullscreen || docEl.mozRequestFullScreen || docEl.msRequestFullscreen;
+      if (rfs) {
+        try {
+          const p = rfs.call(docEl);
+          if (p && p.catch) p.catch(() => {});
+        } catch(e) {}
+      }
+      if (screen.orientation && screen.orientation.lock) {
+        try { screen.orientation.lock('landscape').catch(() => {}); } catch(e) {}
+      }
+      window.scrollTo(0, 1);
+    }
+
+    let hasAttemptedAutoFullscreen = false;
+    function attemptAutoFullscreenOnMobile() {
+      if (hasAttemptedAutoFullscreen) return;
+      if (currentPlatform === 'mobile') {
+        requestAppFullscreen();
+      }
+      hasAttemptedAutoFullscreen = true;
+    }
+    window.addEventListener('touchstart', attemptAutoFullscreenOnMobile, { passive: true });
+    window.addEventListener('pointerdown', attemptAutoFullscreenOnMobile, { passive: true });
+
+    function checkOrientationPrompt() {
+      const overlay = document.getElementById('orientation-hint-overlay');
+      if (!overlay) return;
+      const isPortrait = (window.innerHeight > window.innerWidth);
+      if (currentPlatform === 'mobile' && isPortrait) {
+        overlay.classList.remove('hidden');
+      } else {
+        overlay.classList.add('hidden');
+      }
+    }
+    window.addEventListener('resize', checkOrientationPrompt);
+    window.addEventListener('orientationchange', () => {
+      setTimeout(checkOrientationPrompt, 300);
+      setTimeout(resizeCanvas, 300);
+    });
+
+    document.addEventListener('fullscreenchange', updateFullscreenButton);
+    document.addEventListener('webkitfullscreenchange', updateFullscreenButton);
+    function updateFullscreenButton() {
+      const isFull = Boolean(document.fullscreenElement || document.webkitFullscreenElement);
+      const icon = document.getElementById('fullscreen-icon');
+      const text = document.getElementById('fullscreen-text');
+      if (icon) icon.textContent = isFull ? '✕' : '⛶';
+      if (text) text.textContent = isFull ? 'Thoát Full' : 'Toàn Màn Hình';
+    }
+
+    // =========================================================
     // HỆ THỐNG ĐIỀU KHIỂN ĐA NỀN TẢNG (PC & MOBILE MODES)
     // =========================================================
     const touchControls = {
