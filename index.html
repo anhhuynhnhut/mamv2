@@ -334,35 +334,92 @@ window.MAM_ITEMS = {
       overscroll-behavior: none;
     }
 
+    /* Thanh Header siêu gọn nhẹ trên Mobile */
+    body.platform-mobile header {
+      top: 6px !important;
+      left: 8px !important;
+      max-width: none !important;
+      z-index: 40 !important;
+    }
+    body.platform-mobile #hud-header-container {
+      padding: 3px 6px !important;
+      gap: 5px !important;
+      border-radius: 9999px !important;
+      flex-wrap: nowrap !important;
+      background: rgba(253, 246, 233, 0.94) !important;
+      backdrop-filter: blur(6px) !important;
+      box-shadow: 1.5px 2px 0px #2c1d11, 0 4px 10px rgba(0,0,0,0.25) !important;
+    }
+    body.platform-mobile .hud-btn-text,
+    body.platform-mobile .hud-separator,
+    body.platform-mobile #stage-title-badge {
+      display: none !important;
+    }
+    body.platform-mobile header .ink-btn {
+      width: 32px !important;
+      height: 32px !important;
+      min-width: 32px !important;
+      padding: 0 !important;
+      display: inline-flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      font-size: 15px !important;
+      border-radius: 9999px !important;
+    }
+
+    /* Tự động thu gọn Header trên màn hình hẹp kể cả ở chế độ PC */
+    @media (max-width: 680px) {
+      header {
+        top: 6px !important;
+        left: 8px !important;
+      }
+      #hud-header-container {
+        padding: 3px 5px !important;
+        gap: 4px !important;
+        border-radius: 9999px !important;
+        flex-wrap: nowrap !important;
+      }
+      .hud-btn-text,
+      .hud-separator,
+      #stage-title-badge {
+        display: none !important;
+      }
+      header .ink-btn {
+        width: 32px !important;
+        height: 32px !important;
+        min-width: 32px !important;
+        padding: 0 !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        font-size: 15px !important;
+        border-radius: 9999px !important;
+      }
+    }
+
     body.platform-mobile #main-hud-panel {
       position: fixed !important;
-      top: 8px !important;
-      right: 10px !important;
+      top: 6px !important;
+      right: 8px !important;
       bottom: auto !important;
       left: auto !important;
-      transform: scale(0.82) !important;
+      transform: scale(0.78) !important;
       transform-origin: top right !important;
       z-index: 35 !important;
       pointer-events: auto !important;
     }
 
-    body.platform-mobile header {
-      top: 8px !important;
-      left: 8px !important;
-      max-width: 68vw !important;
-    }
-
     body.platform-mobile #movement-tutorial-banner {
-      top: 26% !important;
+      top: 22% !important;
       transform: translate(-50%, -50%) scale(0.92) !important;
-      max-width: 92vw !important;
+      max-width: 90vw !important;
       padding: 6px 14px !important;
     }
 
     body.platform-mobile #dialog-box {
-      bottom: 96px !important;
-      max-width: 94vw !important;
-      padding: 14px 18px !important;
+      bottom: 86px !important;
+      max-width: 92vw !important;
+      padding: 12px 16px !important;
       z-index: 45 !important;
     }
 
@@ -371,10 +428,36 @@ window.MAM_ITEMS = {
       box-shadow: 2px 3px 0px #2c1d11, 0 6px 14px rgba(0,0,0,0.3) !important;
     }
 
+    /* Bảng điều khiển cảm ứng Mobile Touch Controls */
+    #mobile-touch-controls {
+      display: none !important;
+      position: fixed !important;
+      left: 0 !important;
+      right: 0 !important;
+      bottom: 0 !important;
+      z-index: 55 !important;
+      pointer-events: none !important;
+    }
+
     body.platform-mobile #mobile-touch-controls {
+      display: flex !important;
+      justify-content: space-between !important;
+      align-items: flex-end !important;
       padding-bottom: max(10px, env(safe-area-inset-bottom)) !important;
-      padding-left: max(10px, env(safe-area-inset-left)) !important;
-      padding-right: max(10px, env(safe-area-inset-right)) !important;
+      padding-left: max(12px, env(safe-area-inset-left)) !important;
+      padding-right: max(12px, env(safe-area-inset-right)) !important;
+      pointer-events: none !important;
+    }
+
+    body.platform-mobile #mobile-touch-controls .pointer-events-auto {
+      pointer-events: auto !important;
+    }
+
+    .touch-action-btn {
+      touch-action: none;
+      user-select: none;
+      -webkit-user-select: none;
+      box-shadow: 2px 2px 0px #2c1d11, 0 4px 10px rgba(0,0,0,0.22);
     }
 
   </style>
@@ -400,23 +483,23 @@ window.MAM_ITEMS = {
   <!-- THANH CÔNG CỤ MỰC VẼ TRÊN ĐỈNH (HAND-DRAWN INK TOP BAR)  -->
   <!-- ======================================================= -->
   <header class="fixed top-2.5 left-3 z-30 flex items-center pointer-events-none">
-    <div class="pointer-events-auto ink-box flex items-center gap-2 px-3 py-1 text-[13px] flex-wrap sm:flex-nowrap">
+    <div id="hud-header-container" class="pointer-events-auto ink-box flex items-center gap-1.5 sm:gap-2 px-2.5 py-1 text-[13px] flex-nowrap shadow-md">
       <button onclick="openMapModal()" class="ink-btn px-2 py-0.5 text-[12.5px] sm:text-[13px] flex items-center gap-1" title="Mở bản đồ hành trình">
-        <span>📜</span> <span id="lbl-hud-map">Bản Đồ (M)</span>
+        <span>📜</span> <span id="lbl-hud-map" class="hud-btn-text">Bản Đồ (M)</span>
       </button>
       <button id="btn-hud-inventory" onclick="toggleInventoryModal()" class="ink-btn px-2 py-0.5 text-[12.5px] sm:text-[13px] bg-[#2e5a36] text-[#fdf6e9] hover:bg-[#234529] font-bold flex items-center gap-1" title="Mở hành trang / túi đồ">
-        <span>🎒</span> <span id="lbl-hud-inv">Hành Trang (I)</span>
+        <span>🎒</span> <span id="lbl-hud-inv" class="hud-btn-text">Hành Trang (I)</span>
       </button>
       <button onclick="openHelpModal()" class="ink-btn px-2 py-0.5 text-[12.5px] sm:text-[13px] flex items-center gap-1" title="Xem hướng dẫn điều khiển">
-        <span>❓</span> <span id="lbl-hud-help">Hướng Dẫn (H)</span>
+        <span>❓</span> <span id="lbl-hud-help" class="hud-btn-text">Hướng Dẫn (H)</span>
       </button>
       <button id="btn-fullscreen-toggle" onclick="toggleAppFullscreen()" class="ink-btn px-2 py-0.5 text-[12px] sm:text-[12.5px] font-bold flex items-center gap-1 border border-[#8b7355]/40 text-[#2e5a36] hover:bg-[#2e5a36] hover:text-[#fdf6e9] transition shadow-sm" title="Toàn Màn Hình">
-        <span id="fullscreen-icon">⛶</span> <span id="fullscreen-text" class="hidden md:inline">Toàn Màn Hình</span>
+        <span id="fullscreen-icon">⛶</span> <span id="fullscreen-text" class="hud-btn-text hidden md:inline">Toàn Màn Hình</span>
       </button>
       <button id="btn-platform-toggle" onclick="togglePlatformMode()" class="ink-btn px-2 py-0.5 text-[12px] sm:text-[12.5px] font-bold flex items-center gap-1 border border-[#8b7355]/40 text-[#8c2d19] hover:bg-[#8c2d19] hover:text-[#fdf6e9] transition shadow-sm" title="Chuyển đổi chế độ PC / Mobile">
-        <span id="platform-icon">🖥️</span> <span id="platform-text">PC</span>
+        <span id="platform-icon">🖥️</span> <span id="platform-text" class="hud-btn-text">PC</span>
       </button>
-      <span class="text-[#8b7355] px-0.5 hidden sm:inline">|</span>
+      <span class="hud-separator text-[#8b7355] px-0.5 hidden sm:inline">|</span>
       <span id="stage-title-badge" class="font-bold text-[#8c2d19] text-[12.5px] sm:text-[13px]">📍 Màn 1: Vùng Tro Tàn</span>
     </div>
 
@@ -1005,48 +1088,48 @@ window.MAM_ITEMS = {
   <!-- ======================================================= -->
   <!-- BẢNG ĐIỀU KHIỂN CẢM ỨNG CHO THIẾT BỊ DI ĐỘNG (MOBILE UI) -->
   <!-- ======================================================= -->
-  <div id="mobile-touch-controls" class="hidden fixed inset-x-0 bottom-0 z-35 pointer-events-none select-none pb-3 sm:pb-5 px-3 sm:px-6 flex justify-between items-end">
+  <div id="mobile-touch-controls" class="fixed inset-x-0 bottom-0 pointer-events-none select-none flex justify-between items-end">
     <!-- Cụm Điều Hướng Trái (Left D-Pad: Trái, Phải & Chạy Nhanh) -->
-    <div class="pointer-events-auto flex items-center gap-2 sm:gap-3 bg-[#fdf6e9]/90 backdrop-blur-md p-2 rounded-3xl border-2 border-[#8b7355]/60 shadow-2xl">
+    <div class="pointer-events-auto flex items-center gap-2 bg-[#fdf6e9]/95 backdrop-blur-md p-2 rounded-2xl border-2 border-[#8b7355] shadow-2xl">
       <!-- Nút Đi Trái -->
-      <button id="touch-btn-left" class="w-13 h-13 sm:w-16 sm:h-16 rounded-2xl bg-[#d7c9b1] active:bg-[#8c2d19] active:text-[#fdf6e9] text-[#2c1d11] font-black text-2xl flex items-center justify-center border-2 border-[#8b7355] shadow transition-transform active:scale-95 touch-none" aria-label="Đi Trái">
+      <button id="touch-btn-left" class="touch-action-btn w-14 h-14 rounded-xl bg-[#e8decb] active:bg-[#8c2d19] active:text-[#fdf6e9] text-[#2c1d11] font-black text-2xl flex items-center justify-center border-2 border-[#8b7355] active:scale-95 transition" aria-label="Đi Trái">
         ◀
       </button>
       <!-- Nút Chạy Nhanh (Sprint / Shift toggle) -->
-      <button id="touch-btn-shift" class="w-11 h-11 sm:w-13 sm:h-13 rounded-xl bg-[#e2d5c3] text-[#8c2d19] font-black text-base flex flex-col items-center justify-center border-2 border-[#8b7355]/70 shadow transition-transform active:scale-95 touch-none" aria-label="Chạy Nhanh">
-        <span>⚡</span>
-        <span class="text-[9px] uppercase tracking-tighter -mt-1 font-bold">Chạy</span>
+      <button id="touch-btn-shift" class="touch-action-btn w-12 h-12 rounded-xl bg-[#e2d5c3] text-[#8c2d19] font-black text-sm flex flex-col items-center justify-center border-2 border-[#8b7355]/80 active:scale-95 transition" aria-label="Chạy Nhanh">
+        <span class="text-base leading-none">⚡</span>
+        <span class="text-[9px] uppercase tracking-tighter mt-0.5 font-bold">Chạy</span>
       </button>
       <!-- Nút Đi Phải -->
-      <button id="touch-btn-right" class="w-13 h-13 sm:w-16 sm:h-16 rounded-2xl bg-[#d7c9b1] active:bg-[#8c2d19] active:text-[#fdf6e9] text-[#2c1d11] font-black text-2xl flex items-center justify-center border-2 border-[#8b7355] shadow transition-transform active:scale-95 touch-none" aria-label="Đi Phải">
+      <button id="touch-btn-right" class="touch-action-btn w-14 h-14 rounded-xl bg-[#e8decb] active:bg-[#8c2d19] active:text-[#fdf6e9] text-[#2c1d11] font-black text-2xl flex items-center justify-center border-2 border-[#8b7355] active:scale-95 transition" aria-label="Đi Phải">
         ▶
       </button>
     </div>
 
     <!-- Cụm Hành Động Phải (Right Action Cluster: Nhảy, Tương tác, Nở hoa, Thiền) -->
-    <div class="pointer-events-auto flex items-end gap-2 sm:gap-3 bg-[#fdf6e9]/90 backdrop-blur-md p-2 rounded-3xl border-2 border-[#8b7355]/60 shadow-2xl">
+    <div class="pointer-events-auto flex items-end gap-2 bg-[#fdf6e9]/95 backdrop-blur-md p-2 rounded-2xl border-2 border-[#8b7355] shadow-2xl">
       <!-- Cột phụ: Nở hoa & Thiền -->
-      <div class="flex flex-col gap-2">
-        <button id="touch-btn-bloom" class="w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-[#fce7f3] text-[#be185d] border-2 border-[#f472b6] shadow flex flex-col items-center justify-center active:scale-95 transition touch-none" aria-label="Nở Hoa / Búp">
-          <span class="text-sm">🌸</span>
-          <span class="text-[9px] -mt-1 font-bold">Nở/Búp</span>
+      <div class="flex flex-col gap-1.5">
+        <button id="touch-btn-bloom" class="touch-action-btn w-11 h-11 rounded-lg bg-[#fce7f3] text-[#be185d] border-2 border-[#f472b6] flex flex-col items-center justify-center active:scale-95 transition" aria-label="Nở Hoa / Búp">
+          <span class="text-sm leading-none">🌸</span>
+          <span class="text-[8px] mt-0.5 font-bold leading-none">Nở/Búp</span>
         </button>
-        <button id="touch-btn-meditate" class="w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-[#dcfce7] text-[#15803d] border-2 border-[#86efac] shadow flex flex-col items-center justify-center active:scale-95 transition touch-none" aria-label="Thiền Định">
-          <span class="text-sm">🧘</span>
-          <span class="text-[9px] -mt-1 font-bold">Thiền</span>
+        <button id="touch-btn-meditate" class="touch-action-btn w-11 h-11 rounded-lg bg-[#dcfce7] text-[#15803d] border-2 border-[#86efac] flex flex-col items-center justify-center active:scale-95 transition" aria-label="Thiền Định">
+          <span class="text-sm leading-none">🧘</span>
+          <span class="text-[8px] mt-0.5 font-bold leading-none">Thiền</span>
         </button>
       </div>
 
       <!-- Nút Tương Tác (F) -->
-      <button id="touch-btn-interact" class="w-13 h-13 sm:w-14 sm:h-14 rounded-2xl bg-[#8c2d19] text-[#fdf6e9] border-2 border-[#2c1d11] shadow-lg flex flex-col items-center justify-center active:scale-95 transition touch-none" aria-label="Tương Tác">
-        <span class="text-lg">💬</span>
-        <span class="text-[9px] -mt-1 font-bold">Tương Tác</span>
+      <button id="touch-btn-interact" class="touch-action-btn w-14 h-14 rounded-xl bg-[#8c2d19] text-[#fdf6e9] border-2 border-[#2c1d11] flex flex-col items-center justify-center active:scale-95 transition" aria-label="Tương Tác">
+        <span class="text-lg leading-none">💬</span>
+        <span class="text-[9px] mt-0.5 font-bold leading-none">Tương Tác</span>
       </button>
 
       <!-- Nút Bật Nhảy Lớn (Space / Jump) -->
-      <button id="touch-btn-jump" class="w-15 h-15 sm:w-18 sm:h-18 rounded-2xl bg-gradient-to-t from-[#1e3a24] to-[#2e5a36] text-[#fdf6e9] border-2 border-[#86efac] shadow-xl flex flex-col items-center justify-center active:scale-90 transition touch-none" aria-label="Bật Nhảy">
-        <span class="text-2xl">🦘</span>
-        <span class="text-[10px] -mt-1 font-black uppercase tracking-wider">Nhảy</span>
+      <button id="touch-btn-jump" class="touch-action-btn w-16 h-16 rounded-xl bg-gradient-to-t from-[#1e3a24] to-[#2e5a36] text-[#fdf6e9] border-2 border-[#86efac] flex flex-col items-center justify-center active:scale-90 transition" aria-label="Bật Nhảy">
+        <span class="text-2xl leading-none">🦘</span>
+        <span class="text-[10px] mt-0.5 font-black uppercase tracking-wider leading-none">Nhảy</span>
       </button>
     </div>
   </div>
@@ -3037,13 +3120,24 @@ window.MAM_ITEMS = {
     let currentPlatform = 'pc';
 
     function detectPlatform() {
-      const saved = localStorage.getItem('mam_game_platform');
-      if (saved === 'pc' || saved === 'mobile') {
-        return saved;
+      // 1. Ưu tiên lựa chọn thủ công của người chơi nếu đã từng chọn
+      const userChoice = localStorage.getItem('mam_game_platform_user_choice');
+      if (userChoice === 'pc' || userChoice === 'mobile') {
+        return userChoice;
       }
-      const isMobileUA = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-      const isTouch = (('ontouchstart' in window) || (navigator.maxTouchPoints > 0) || (window.matchMedia && window.matchMedia('(pointer: coarse)').matches)) && window.innerWidth <= 1024;
-      return (isMobileUA || isTouch) ? 'mobile' : 'pc';
+      // 2. Nhận diện thiết bị iPadOS (User Agent là Macintosh nhưng có đa điểm chạm)
+      const isIPad = (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+      // 3. Nhận diện di động qua User-Agent
+      const isMobileUA = isIPad || /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Mobile|Silk/i.test(navigator.userAgent);
+      // 4. Kiểm tra khả năng hover chuột và con trỏ cảm ứng
+      const hasCoarsePointer = Boolean(window.matchMedia && window.matchMedia('(pointer: coarse)').matches);
+      const canHover = Boolean(window.matchMedia && window.matchMedia('(hover: hover)').matches);
+      const isPhoneAspect = (Math.min(window.innerWidth, window.innerHeight) <= 500);
+
+      if (isMobileUA || (hasCoarsePointer && !canHover) || (isPhoneAspect && !canHover)) {
+        return 'mobile';
+      }
+      return 'pc';
     }
 
     function togglePlatformMode() {
@@ -3053,10 +3147,13 @@ window.MAM_ITEMS = {
 
     function setPlatformMode(mode, userInitiated = false) {
       currentPlatform = mode;
+      if (userInitiated) {
+        localStorage.setItem('mam_game_platform_user_choice', mode);
+      }
       localStorage.setItem('mam_game_platform', mode);
       applyPlatformUI();
       checkOrientationPrompt();
-      if (mode === 'mobile') {
+      if (mode === 'mobile' && userInitiated) {
         requestAppFullscreen();
       }
       if (userInitiated) {
@@ -3115,8 +3212,13 @@ window.MAM_ITEMS = {
       // Nút điều khiển cảm ứng
       const touchControlsEl = document.getElementById('mobile-touch-controls');
       if (touchControlsEl) {
-        if (isMob) touchControlsEl.classList.remove('hidden');
-        else touchControlsEl.classList.add('hidden');
+        if (isMob) {
+          touchControlsEl.style.display = 'flex';
+          touchControlsEl.classList.remove('hidden');
+        } else {
+          touchControlsEl.style.display = 'none';
+          touchControlsEl.classList.add('hidden');
+        }
       }
 
       // Top HUD labels
@@ -3199,7 +3301,11 @@ window.MAM_ITEMS = {
       }
     }
 
+    let touchListenersInitialized = false;
     function initTouchListeners() {
+      if (touchListenersInitialized) return;
+      touchListenersInitialized = true;
+
       const btnLeft = document.getElementById('touch-btn-left');
       const btnRight = document.getElementById('touch-btn-right');
       const btnShift = document.getElementById('touch-btn-shift');
@@ -3209,8 +3315,8 @@ window.MAM_ITEMS = {
       const btnMeditate = document.getElementById('touch-btn-meditate');
 
       if (btnLeft) {
-        const handleStart = (e) => { e.preventDefault(); touchControls.left = true; btnLeft.classList.add('bg-[#8c2d19]', 'text-[#fdf6e9]'); };
-        const handleEnd = (e) => { e.preventDefault(); touchControls.left = false; btnLeft.classList.remove('bg-[#8c2d19]', 'text-[#fdf6e9]'); };
+        const handleStart = (e) => { if (e.cancelable) e.preventDefault(); touchControls.left = true; btnLeft.classList.add('bg-[#8c2d19]', 'text-[#fdf6e9]'); };
+        const handleEnd = (e) => { if (e.cancelable) e.preventDefault(); touchControls.left = false; btnLeft.classList.remove('bg-[#8c2d19]', 'text-[#fdf6e9]'); };
         btnLeft.addEventListener('touchstart', handleStart, { passive: false });
         btnLeft.addEventListener('touchend', handleEnd, { passive: false });
         btnLeft.addEventListener('touchcancel', handleEnd, { passive: false });
@@ -3220,8 +3326,8 @@ window.MAM_ITEMS = {
       }
 
       if (btnRight) {
-        const handleStart = (e) => { e.preventDefault(); touchControls.right = true; btnRight.classList.add('bg-[#8c2d19]', 'text-[#fdf6e9]'); };
-        const handleEnd = (e) => { e.preventDefault(); touchControls.right = false; btnRight.classList.remove('bg-[#8c2d19]', 'text-[#fdf6e9]'); };
+        const handleStart = (e) => { if (e.cancelable) e.preventDefault(); touchControls.right = true; btnRight.classList.add('bg-[#8c2d19]', 'text-[#fdf6e9]'); };
+        const handleEnd = (e) => { if (e.cancelable) e.preventDefault(); touchControls.right = false; btnRight.classList.remove('bg-[#8c2d19]', 'text-[#fdf6e9]'); };
         btnRight.addEventListener('touchstart', handleStart, { passive: false });
         btnRight.addEventListener('touchend', handleEnd, { passive: false });
         btnRight.addEventListener('touchcancel', handleEnd, { passive: false });
@@ -3232,7 +3338,7 @@ window.MAM_ITEMS = {
 
       if (btnShift) {
         const toggleShift = (e) => {
-          e.preventDefault();
+          if (e.cancelable) e.preventDefault();
           touchControls.shift = !touchControls.shift;
           if (touchControls.shift) {
             btnShift.classList.add('bg-[#ea580c]', 'text-white', 'ring-2', 'ring-[#fde047]');
@@ -3250,7 +3356,7 @@ window.MAM_ITEMS = {
 
       if (btnJump) {
         const handleJump = (e) => {
-          e.preventDefault();
+          if (e.cancelable) e.preventDefault();
           triggerPlayerJump();
         };
         btnJump.addEventListener('touchstart', handleJump, { passive: false });
@@ -3259,7 +3365,7 @@ window.MAM_ITEMS = {
 
       if (btnInteract) {
         const handleInteract = (e) => {
-          e.preventDefault();
+          if (e.cancelable) e.preventDefault();
           if (activeNearestInteractable) {
             triggerInteractionPrompt(activeNearestInteractable);
           } else {
@@ -3272,7 +3378,7 @@ window.MAM_ITEMS = {
 
       if (btnBloom) {
         const handleBloom = (e) => {
-          e.preventDefault();
+          if (e.cancelable) e.preventDefault();
           triggerBloomToggle();
         };
         btnBloom.addEventListener('touchstart', handleBloom, { passive: false });
@@ -3281,12 +3387,30 @@ window.MAM_ITEMS = {
 
       if (btnMeditate) {
         const handleMeditate = (e) => {
-          e.preventDefault();
+          if (e.cancelable) e.preventDefault();
           triggerAction('meditate');
         };
         btnMeditate.addEventListener('touchstart', handleMeditate, { passive: false });
         btnMeditate.addEventListener('mousedown', handleMeditate);
       }
+
+      // Xử lý nhả ngón tay khi trượt ra ngoài vùng nút
+      window.addEventListener('touchend', (e) => {
+        if (e.touches.length === 0) {
+          touchControls.left = false;
+          touchControls.right = false;
+          if (btnLeft) btnLeft.classList.remove('bg-[#8c2d19]', 'text-[#fdf6e9]');
+          if (btnRight) btnRight.classList.remove('bg-[#8c2d19]', 'text-[#fdf6e9]');
+        }
+      });
+      window.addEventListener('touchcancel', (e) => {
+        if (e.touches.length === 0) {
+          touchControls.left = false;
+          touchControls.right = false;
+          if (btnLeft) btnLeft.classList.remove('bg-[#8c2d19]', 'text-[#fdf6e9]');
+          if (btnRight) btnRight.classList.remove('bg-[#8c2d19]', 'text-[#fdf6e9]');
+        }
+      });
     }
 
     const keys = {};
@@ -5170,7 +5294,8 @@ window.MAM_ITEMS = {
 
       // 3. Xoay đầu nhẹ theo hướng con trỏ chuột (Smooth Mesh-Slice Head Bend — KHÔNG CẮT LỚP RỜI!)
       const finalViewScale = viewScale * cameraZoom;
-      const zoomOffsetY = (DESIGN_H - DESIGN_H / cameraZoom) * 0.72;
+      const targetGroundRatio = (currentPlatform === 'mobile' ? 0.70 : 0.93);
+      const zoomOffsetY = Math.max(0, 672 - (targetGroundRatio * DESIGN_H / cameraZoom));
       const playerScreenX = (player.x - cameraX) * finalViewScale;
       const playerHeadScreenY = (player.footY - 46 - cameraY - zoomOffsetY) * finalViewScale;
 
@@ -5386,9 +5511,7 @@ window.MAM_ITEMS = {
       // Render toàn bộ Màn chơi, Tiền cảnh Parallax, Tia nắng & Mực loang điện ảnh
       drawStageWorld(ctx, W, H, viewScale, st, cond, now, dt);
 
-      initTouchListeners();
-    setPlatformMode(detectPlatform());
-    requestAnimationFrame(gameLoop);
+      requestAnimationFrame(gameLoop);
     }
 
     // =========================================================
@@ -5400,7 +5523,8 @@ window.MAM_ITEMS = {
       ctx.save();
       // Áp dụng Camera Zoom & Cuộn ngang mượt
       const finalScale = viewScale * cameraZoom;
-      const zoomOffsetY = (DESIGN_H - DESIGN_H / cameraZoom) * 0.72; // Giữ trọng tâm zoom vào mặt đất nơi nhân vật đứng
+      const targetGroundRatio = (currentPlatform === 'mobile' ? 0.70 : 0.93);
+      const zoomOffsetY = Math.max(0, 672 - (targetGroundRatio * DESIGN_H / cameraZoom)); // Giữ nhân vật Mầm và mặt đất ở vị trí 70% trên Mobile để chừa không gian cho nút cảm ứng
       ctx.scale(finalScale, finalScale);
       ctx.translate(-cameraX, -cameraY - zoomOffsetY);
 
@@ -6522,6 +6646,9 @@ window.MAM_ITEMS = {
       }
     }
 
+    // Khởi tạo hệ thống điều khiển & nhận diện nền tảng (chạy 1 lần duy nhất lúc khởi động)
+    initTouchListeners();
+    setPlatformMode(detectPlatform());
     switchStage(1, undefined, true);
     requestAnimationFrame(gameLoop);
   </script>
